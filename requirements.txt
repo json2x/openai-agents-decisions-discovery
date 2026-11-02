@@ -1,0 +1,5 @@
+openai>=3.26.0,<4
+openai-agents>=0.24,<0.25
+python-dotenv>=1.0,<2
+jupyterlab>=4,<5
+ipykernel>=6,<8

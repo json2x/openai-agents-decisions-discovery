@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.venv/
+.ipynb_checkpoints/
+__pycache__/
+.agents_decisions_showcase_state.json
+.local/
+**/.build/
+outputs/learning-session/powerpoint/
+*.py[cod]
+.DS_Store
+Thumbs.db

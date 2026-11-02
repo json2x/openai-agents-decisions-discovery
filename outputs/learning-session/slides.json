@@ -1,0 +1,482 @@
+[
+  {
+    "title": "Agents &\nDecisions",
+    "kind": "cover",
+    "time": 30,
+    "sub": "What they are\nand how to use them",
+    "footer": "OpenAI Platform  /  3 November 2026",
+    "image": 0,
+    "notes": "Hi everyone. Today I’ll introduce two OpenAI platform capabilities: Agents and Decisions. We’ll look at what each one does, when to use it, and enough Python to make a first request. We’ll also cover the different ways to configure agents, and how to retrieve an agent or a session later. The agent examples are general. For Decisions, we’ll use single-value and multi-value CVL fields in PIM to make the difference between choices and predicates concrete. Toward the end, I’ll mention other possible applications. The main session takes about fourteen minutes, and the appendix provides extra code to review afterward."
+  },
+  {
+    "title": "A task and a judgment",
+    "kind": "imageCompare",
+    "time": 45,
+    "image": 2,
+    "sections": [
+      [
+        "Agents",
+        "Work toward a goal through steps and tools."
+      ],
+      [
+        "Decisions",
+        "Answer a bounded question about supplied evidence."
+      ]
+    ],
+    "footer": "They can cooperate: one evaluates an input, the other carries out a task.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/agents",
+      "https://developers.openai.com/api/docs/guides/decisions"
+    ],
+    "notes": "Let’s start with the distinction we’ll use throughout the session. An agent works toward a goal. For example, it could investigate a support issue by checking information through approved tools and preparing a response. Decisions evaluates a narrower question, such as which queue should receive that issue. Think of the railway switch here as a routing judgment: it selects a direction, while a separate system carries out the work. We can use either capability independently, or combine them. The choice depends on whether we need a bounded judgment or a task that unfolds over several steps."
+  },
+  {
+    "title": "The building blocks of an agent",
+    "kind": "workflow",
+    "time": 60,
+    "rows": [
+      [
+        "01",
+        "Configuration",
+        "Model, instructions and available tools"
+      ],
+      [
+        "02",
+        "Session",
+        "Conversation and work across turns"
+      ],
+      [
+        "03",
+        "Environment",
+        "Optional compute for commands and files"
+      ],
+      [
+        "04",
+        "Events",
+        "Progress, tool activity and results"
+      ]
+    ],
+    "footer": "The managed Agents API runs OpenAI’s harness. Your application supplies tools and policy.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/agents-api/overview",
+      "https://developers.openai.com/api/docs/guides/agents-api/architecture"
+    ],
+    "notes": "Before the code, four terms will help. Configuration describes the model, its instructions, and the tools it can use. A session holds a particular conversation and its work. An environment supplies compute when a task needs commands or files. Events let us observe progress and results. The managed Agents API runs the harness, which coordinates the model and tool loop. We still need to supply meaningful tools and application rules. As an example, a coding task benefits from a sandbox, while an agent using remote service tools might not need its own compute environment."
+  },
+  {
+    "title": "Ways to create and configure agents",
+    "kind": "table",
+    "time": 60,
+    "values": [
+      [
+        "Approach",
+        "How you define it",
+        "What persists"
+      ],
+      [
+        "Inline Agents API",
+        "agent={model, instructions, …}",
+        "Configuration within a session"
+      ],
+      [
+        "Saved Agents API",
+        "client.beta.agents.create(...)",
+        "Reusable agent_id"
+      ],
+      [
+        "Separate Agents SDK",
+        "Agent(...) with Runner",
+        "An application object + chosen storage"
+      ]
+    ],
+    "widths": [
+      300,
+      455,
+      385
+    ],
+    "footer": "A compatible saved agent_id can also come from the Platform. Creating one there is optional.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/agents",
+      "https://developers.openai.com/api/docs/guides/agents-api/configuration",
+      "https://developers.openai.com/api/docs/guides/agents/quickstart"
+    ],
+    "notes": "There are three approaches to distinguish. With inline configuration, we supply settings when creating a managed session. With a saved agent, we create reusable settings once and reference the returned ID in later sessions. A compatible saved-agent ID from the Platform can serve the same referencing role, but we don’t need a dashboard setup step for these examples. Finally, the separate Agents SDK uses Agent and Runner inside our application. That object is different from a saved Agents API resource. If you encounter an Agent Builder workflow ID, check its integration instructions rather than treating it as an agent ID."
+  },
+  {
+    "title": "Shared Python setup",
+    "kind": "codeSide",
+    "time": 60,
+    "code": "from dotenv import load_dotenv\nfrom openai import OpenAI\n\nload_dotenv()\nclient = OpenAI()\nDECISION_MODEL = \"gpt-6-luna\"\nAGENT_MODEL = \"gpt-6-astra\"\nEVIDENCE = (\"Navy blue jacket. \"\n            \"Suitable for hiking and cycling.\")\nTASK = (\n    \"Write and run Python to find the \"\n    \"average of 12, 18 and 24. Explain it.\"\n)",
+    "side": [
+      [
+        "Why gpt-6-luna?",
+        "Currently the only model\nsupported by Decisions."
+      ],
+      [
+        "Why gpt-6-astra?",
+        "Matches the agent quickstart.\nStrong reasoning and coding;\nmore than this demo needs."
+      ],
+      [
+        "Choose for production",
+        "A demo choice, not a requirement.\nEvaluate supported models for\nquality, latency and cost."
+      ]
+    ],
+    "footer": "Install: pip install -U openai python-dotenv | Key: root .env\nAgent scopes: api.agents.read, api.agents.write, api.responses.write",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/decisions",
+      "https://developers.openai.com/api/docs/guides/agents-api/quickstart",
+      "https://developers.openai.com/api/docs/guides/agents-api/configuration",
+      "https://developers.openai.com/api/docs/models/gpt-6-astra"
+    ],
+    "notes": "Here is the shared setup for the Python examples. The client reads our key from the root environment file. Notice that the two model names have different reasons behind them. We use GPT-6 Luna for Decisions because it is currently the only model supported by that endpoint. It is an API requirement today. For the agent, I chose GPT-6 Astra to match OpenAI's Agents API quickstart and use a model with strong reasoning and coding capabilities. It is a demonstration choice, not an Agents API requirement. Calculating this average does not need a flagship model. For production, evaluate supported models on your own tasks and choose a balance of quality, latency and cost. EVIDENCE supplies the navy jacket description for our CVL questions; TASK supplies the coding exercise. Install the two packages shown below, and give the project key the required permissions. Running these examples incurs usage charges."
+  },
+  {
+    "title": "Inline agent: start a task and stream events",
+    "kind": "codeFull",
+    "time": 75,
+    "code": "with client.beta.agents.sessions.create(\n    agent={\n        \"model\": AGENT_MODEL,\n        \"instructions\": \"Run code and report the actual output.\"\n    },\n    environment={\"type\": \"openai_hosted\"},\n    input=TASK,\n    stream=True,\n).with_result_collection() as events:\n    for event in events:\n        print(event.to_json(indent=None), flush=True)\n    result = events.get_final_result()\n\nprint(result.output_text)\nprint(result.session_id)",
+    "footer": "Uses slide 5 setup. Hosted compute adds container charges. See the cost reference on slide 20.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/agents-api/quickstart",
+      "https://developers.openai.com/api/docs/pricing#tools",
+      "https://developers.openai.com/api/docs/guides/agents-api/environments/openai-hosted"
+    ],
+    "notes": "This is an inline managed agent. We supply its model and instructions directly in the session request. The hosted environment gives it somewhere to write and run Python, and TASK contains the job we defined earlier. Hosted compute adds a separate container charge, covered in the appendix. Streaming lets us see progress as work happens. Inside the loop, we print the full JSON event, rather than only its type. The result collector then gives us final text and a session ID. We should keep that ID if we want to inspect or continue this work. The reported answer is useful, but actual tool records provide the evidence that the code ran."
+  },
+  {
+    "title": "Saved agent: create once and reuse",
+    "kind": "codeSide",
+    "time": 60,
+    "code": "saved = client.beta.agents.create(\n    name=\"Technical explainer\",\n    model=AGENT_MODEL,\n    instructions=\"Explain technical issues clearly.\"\n)\nsession = client.beta.agents.sessions.create(\n    agent_id=saved.id,\n    environment={\"type\": \"none\"},\n    input=\"Explain why a file export might fail.\"\n)\n\nprint(\"name:\", saved.name)\nprint(\"agent_id:\", saved.id)\nprint(\"session_id:\", session.id)",
+    "side": [
+      [
+        "Name and save",
+        "Human-readable name;\nreuse the returned ID."
+      ],
+      [
+        "Start work",
+        "Create a session\nusing agent_id."
+      ],
+      [
+        "Reuse later",
+        "Persist both IDs\noutside Python memory."
+      ]
+    ],
+    "footer": "Uses slide 5 setup. Another authorized process can reference the saved agent ID.",
+    "sources": [
+      "https://developers.openai.com/api/reference/python/resources/beta/subresources/agents/methods/create",
+      "https://developers.openai.com/api/docs/guides/agents-api/configuration"
+    ],
+    "notes": "Now we separate configuration from a particular task. We give the saved agent a human-readable name, Technical explainer. The name helps people recognize it, while the returned agent ID is what our application stores and uses for retrieval and new sessions. The first call creates those reusable settings. The second starts a session using the ID. Here we only need an explanation, so we choose no execution environment. In production, keep creation in a deployment step and store the ID in application configuration. Another Python worker can then reuse it. Each session has its own conversation. Updating saved settings affects future sessions. An existing unnamed agent can be renamed through the update endpoint, as shown in the notebook."
+  },
+  {
+    "title": "Retrieve an agent and a session later",
+    "kind": "codeSide",
+    "time": 75,
+    "code": "# Replace these with the IDs you persisted.\nagent_id = \"YOUR_SAVED_AGENT_ID\"\nsession_id = \"YOUR_SESSION_ID\"\n\nagent = client.beta.agents.retrieve(agent_id)\nsession = client.beta.agents.sessions.retrieve(\n    session_id\n)\n\nprint(agent.model)\nprint(agent.instructions)\nprint(session.status)",
+    "side": [
+      [
+        "Agent retrieval",
+        "Read reusable settings."
+      ],
+      [
+        "Session retrieval",
+        "Inspect a specific\nconversation’s state."
+      ],
+      [
+        "Across instances",
+        "Use credentials with\naccess to that project."
+      ]
+    ],
+    "footer": "Uses slide 5 setup. Retrieving a resource does not start another task.",
+    "sources": [
+      "https://developers.openai.com/api/reference/python/resources/beta/subresources/agents/methods/retrieve",
+      "https://developers.openai.com/api/docs/guides/agents-api/sessions/manage"
+    ],
+    "notes": "This answers a common persistence question: yes, another Python process can retrieve these resources later. We store the IDs, construct a client with appropriate project access, and retrieve the agent or session. Retrieving the agent tells us about its configuration. Retrieving the session tells us the state of that particular conversation, including whether it is idle, working, waiting for an action, or failed. Retrieval does not submit a new task. To inspect saved messages and tool activity, we use the session’s items endpoint, shown in the appendix. Keeping the IDs in our database connects remote work to an application job."
+  },
+  {
+    "title": "Decisions: three bounded answer types",
+    "kind": "table",
+    "time": 75,
+    "values": [
+      [
+        "Type",
+        "Example question",
+        "Main result"
+      ],
+      [
+        "predicate",
+        "Is hiking supported by the source?",
+        "Probability from 0 to 1"
+      ],
+      [
+        "choice",
+        "Which base_color CVL key fits?",
+        "One supplied CVL key"
+      ],
+      [
+        "score",
+        "How positive is this review?",
+        "0 negative, 1 neutral, 2 positive"
+      ]
+    ],
+    "widths": [
+      220,
+      530,
+      390
+    ],
+    "footer": "CVL = controlled vocabulary list. Single-CVL fields accept one key. Multi-CVL fields accept several.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/decisions",
+      "https://developers.openai.com/api/reference/resources/decisions/methods/create"
+    ],
+    "notes": "A key benefit is speed: OpenAI describes typed answers as about ten times faster than the Responses API. That is a provider-reported comparison, not guaranteed latency for every input. We should benchmark our own workload. We’ll illustrate Decisions using CVLs, or controlled vocabulary lists, in PIM. In our example, base color accepts one allowed key, while activities accepts several. A predicate can ask whether the supplier explicitly supports hiking. A choice can map navy blue to the allowed base-color key blue. We’ll look at those two patterns next. Score is different: it rates against ordered levels. For the review, “Easy to use. I love it,” we could define zero as negative, one as neutral, and two as positive. An illustrative score of 1.8 is near the positive end. It is a position on that scale, not a CVL assignment or a confidence percentage.",
+    "example": "Example: “Easy to use. I love it.” Illustrative score: 1.8 / 2.",
+    "speed_claim": "OpenAI reports ~10× faster typed answers than Responses API.",
+    "speed_caveat": "Provider-reported comparison. Actual latency varies with the workload."
+  },
+  {
+    "title": "Single CVL: select one base_color key",
+    "kind": "codeFull",
+    "time": 75,
+    "code": "d = client.decisions.create(\n    model=DECISION_MODEL, input=EVIDENCE,\n    questions=[{\n        \"type\": \"choice\", \"name\": \"base_color\",\n        \"instructions\": \"Map navy to blue. If unclear use needs_review.\",\n        \"choices\": [{\"value\": v} for v in\n                    [\"blue\", \"red\", \"green\", \"needs_review\"]]\n    }]\n)\na = d.answers[0]\nif a.type == \"choice\" and a.choice != \"needs_review\":\n    print({\"base_color\": a.choice})\nelse:\n    print(\"Review needed\")",
+    "footer": "Illustrative draft: base_color = blue. needs_review is a workflow fallback, not a CVL key.",
+    "sources": [
+      "https://developers.openai.com/api/reference/resources/decisions/methods/create"
+    ],
+    "notes": "Here is a single-value CVL example. Our fictional base-color field allows blue, red and green. The supplier says navy blue, so the question explicitly maps navy to the canonical key blue. The API chooses one supplied option. We also include needs_review as a workflow fallback for unclear evidence. That fallback is not a valid color key and must never be written into the CVL field. After checking the answer type and excluding the fallback, we print a draft field value. In a real integration, use your PIM’s approved keys or IDs and validate the result before applying it. This code does not update the PIM."
+  },
+  {
+    "title": "Single CVL: use a photo as evidence",
+    "kind": "imageEvidence",
+    "time": 60,
+    "code": "from base64 import b64encode\nfrom pathlib import Path\np = Path(\"outputs/learning-session/assets\")\nurl = \"data:image/png;base64,\" + b64encode(\n    (p / \"jacket-evidence.png\").read_bytes()).decode()\ncolors = [\"orange\", \"blue\", \"black\",\n          \"needs_review\"]\nd = client.decisions.create(model=DECISION_MODEL,\n    input=[dict(role=\"user\", content=[\n        dict(type=\"input_image\", image_url=url)])],\n    questions=[dict(type=\"choice\", name=\"base_color\",\n        instructions=\"Select jacket color.\",\n        choices=[{\"value\": c} for c in colors])])\nprint(d.answers[0].model_dump())",
+    "footer": "Uses slide 5 setup. The local PNG becomes a base64 image input. Treat the color as a draft.",
+    "caption": "Illustrative draft\nbase_color = orange",
+    "notes": "We can also use a photo as the evidence for a CVL decision. Here we read the supplied jacket image, encode its bytes, and create a PNG data URL. The request places that URL in an input_image part of a user message. Our choice question then selects from approved color keys, with a review fallback. For this orange jacket, orange is the illustrative draft value. We print the actual response and would apply the same refusal and fallback checks as on the previous slide before using it. A publicly accessible image URL is another option. The photo can support a visible color judgment, but it cannot establish waterproofing or certification.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/decisions"
+    ],
+    "image": "C:/Users/jayso/Projects/sandbox/test-openai-agents-decisions/outputs/learning-session/assets/jacket-evidence.png"
+  },
+  {
+    "title": "Multi-CVL: assess each allowed activity",
+    "kind": "codeFull",
+    "time": 60,
+    "code": "keys = [\"hiking\", \"running\", \"cycling\"]\nd = client.decisions.create(model=DECISION_MODEL, input=EVIDENCE,\n    questions=[{\n        \"type\": \"predicate\", \"name\": key,\n        \"instructions\": f\"Is {key} explicitly listed as a suitable activity?\"\n    } for key in keys])\nselected, review = [], []\nfor a in d.answers:\n    if a.type != \"predicate\":\n        review.append(a.name)\n    elif a.probability >= 0.85:\n        selected.append(a.name)\n    elif a.probability > 0.15:\n        review.append(a.name)\nprint({\"activities\": selected, \"review\": review})",
+    "footer": "Illustrative draft: activities = [hiking, cycling]. Thresholds require validation on your data.",
+    "sources": [
+      "https://developers.openai.com/api/reference/resources/decisions/methods/create"
+    ],
+    "notes": "Now the activities field accepts several CVL keys. Its allowed keys are hiking, running and cycling. The supplier explicitly lists hiking and cycling, so those are the values we would expect in the draft. We ask one predicate for each candidate, all against the same source evidence, and assemble the array in application code. We do not treat the alternatives in a single choice question as independent labels. Refusals and intermediate probabilities go to review here. The thresholds are illustrative, and production code should check that every requested key received an answer. This JSON is draft data: adapt the write format and validation to your PIM’s API."
+  },
+  {
+    "title": "Choosing the right amount of automation",
+    "kind": "workflow",
+    "time": 45,
+    "rows": [
+      [
+        "01",
+        "Rules",
+        "Exact validation and deterministic checks"
+      ],
+      [
+        "02",
+        "Decisions",
+        "Classification, routing and rubric judgments"
+      ],
+      [
+        "03",
+        "Agent",
+        "Tasks that need investigation or tools"
+      ],
+      [
+        "04",
+        "Application",
+        "Authorization, execution and verification"
+      ]
+    ],
+    "footer": "Use each piece where it helps. A simple task may need only one of them.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/agents",
+      "https://developers.openai.com/api/docs/guides/agents-api/tools/functions"
+    ],
+    "notes": "We do not need to put an agent around every model call. Exact checks are often best handled with ordinary code. Decisions is useful when interpretation leads to a bounded answer. An agent makes sense when a task needs several steps or tool use. The application still owns authorization and verification. As a possible design, Decisions could identify a request that needs investigation, and an agent could gather information and prepare a draft. For production, I would version the configuration, track each job’s session ID, and check actual outcomes rather than relying only on a convincing final response."
+  },
+  {
+    "title": "Use cases across different systems",
+    "kind": "resources",
+    "time": 60,
+    "image": 1,
+    "sections": [
+      [
+        "Support",
+        "Route a request, then investigate it."
+      ],
+      [
+        "Operations",
+        "Prioritize an alert, then prepare a report."
+      ],
+      [
+        "PIM",
+        "Classify products and flag conflicting claims.\nDraft supported content corrections."
+      ]
+    ],
+    "footer": "Suggested applications. Product claims still need source evidence and authorized review.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/agents"
+    ],
+    "notes": "These ideas apply across systems. In support, Decisions can select a queue while an agent investigates evidence available through approved tools. In operations, a bounded judgment can prioritize an alert, while an agent prepares a report. PIM is another example rather than the focus of this session. We could suggest product categories, identify conflicting claims, or draft supported content changes. For instance, a title that says waterproof may conflict with a supplier specification that says water resistant. The organization still needs evidence and review before accepting a factual change. The earlier photo is illustrative and cannot substantiate the claim."
+  },
+  {
+    "title": "What to try after this session",
+    "kind": "closing",
+    "time": 30,
+    "sections": [
+      [
+        "One small judgment",
+        "Write a Decisions question with clear allowed answers."
+      ],
+      [
+        "One small task",
+        "Create an agent session, observe it, then retrieve it by ID."
+      ]
+    ],
+    "footer": "Main session ends here. The appendix contains extra Python examples and source links.",
+    "notes": "To try this afterward, I suggest two small exercises. First, take a recurring classification question and define the evidence and allowed answers for Decisions. Second, create an agent session for a small task, watch its events, and retrieve the session later using its ID. That will make the distinction between reusable settings and ongoing work much clearer. Keep the first experiments small and compare their results with what a person expects. The appendix has extra examples for the separate Agents SDK, Azure Decisions, and session inspection. That’s the main session, and I’m happy to take questions."
+  },
+  {
+    "title": "Reference: predicate and score code",
+    "kind": "codeFull",
+    "appendix": true,
+    "code": "d = client.decisions.create(\n    model=DECISION_MODEL, input=\"Review: Easy to use. I love it.\",\n    questions=[\n        {\"type\": \"predicate\", \"name\": \"positive\",\n         \"instructions\": \"Is the review positive?\"},\n        {\"type\": \"score\", \"name\": \"sentiment\",\n         \"instructions\": \"Rate the tone of this review.\",\n         \"levels\": [\n             {\"label\": \"Negative\", \"description\": \"An unfavorable opinion.\"},\n             {\"label\": \"Neutral\", \"description\": \"Neither positive nor negative.\"},\n             {\"label\": \"Positive\", \"description\": \"A favorable opinion.\"}\n         ]}\n    ])\nprint(d.model_dump())",
+    "footer": "Separate review example. Uses slide 5 client and model. CVL mapping uses choice or predicates.",
+    "sources": [
+      "https://developers.openai.com/api/reference/resources/decisions/methods/create"
+    ],
+    "notes": "This optional example gives the score illustration from slide nine its own code. We use a customer review as the input, separately from the supplier description. One question asks whether the review is positive, while the other scores it on negative, neutral and positive levels. The numeric indices are zero, one and two, and the score may fall between them. The main CVL examples use a choice for one value and predicates for multiple values. A score instead summarizes position on an ordered scale. Printing the full response lets us inspect the actual distributions and any refusal rather than treating the illustrative value on the slide as a measured result."
+  },
+  {
+    "title": "Reference: the separate Agents SDK",
+    "kind": "codeSide",
+    "appendix": true,
+    "code": "# pip install -U openai-agents\nfrom agents import Agent, Runner\n\nagent = Agent(\n    name=\"Technical explainer\",\n    model=\"gpt-6-astra\",\n    instructions=\"Explain technical issues clearly.\"\n)\n# In a notebook, use top-level await.\nsdk_result = await Runner.run(\n    agent,\n    \"Why might a file export fail?\"\n)\nprint(sdk_result.final_output)",
+    "side": [
+      [
+        "Different package",
+        "openai-agents"
+      ],
+      [
+        "Runtime",
+        "The SDK runs in\nyour application."
+      ],
+      [
+        "Persistence",
+        "Agent(...) alone does\nnot create a saved\nAgents API resource."
+      ]
+    ],
+    "footer": "This is an alternative runtime. Earlier examples use the managed Agents API.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/agents/quickstart"
+    ],
+    "notes": "This is the separate Agents SDK version of a small example. We install openai-agents, define an Agent, and call Runner. In a notebook, top-level await avoids trying to start another event loop. The important distinction is where the runtime lives: here it runs inside our application. Constructing this object does not create a reusable server-side agent for the managed Agents API. If we want conversation state across SDK runs, we configure the SDK’s session or storage mechanism. Both approaches can be useful, but we should choose the runtime deliberately and keep their persistence models clear."
+  },
+  {
+    "title": "Reference: Decisions through Azure",
+    "kind": "codeFull",
+    "appendix": true,
+    "code": "import os\nfrom openai import OpenAI\n\nazure = OpenAI(\n    base_url=os.environ[\"AZURE_OPENAI_ENDPOINT\"].rstrip(\"/\")\n             + \"/openai/v1/\",\n    api_key=os.environ[\"AZURE_OPENAI_API_KEY\"],\n)\nd = azure.decisions.create(\n    model=os.environ[\"AZURE_OPENAI_DEPLOYMENT\"],\n    input=EVIDENCE,\n    questions=[{\"type\": \"predicate\", \"name\": \"hiking\",\n                \"instructions\": \"Is hiking explicitly listed?\"}]\n)\nprint(d.answers[0].model_dump())",
+    "footer": "Uses slide 5 EVIDENCE and environment setup. Confirm Azure regional availability.",
+    "notes": "If our organization uses Azure OpenAI, this shows the Decisions client configuration. We supply the Azure resource endpoint and its credentials, then use the deployment name of a gpt-6-luna model. That deployment name may differ from the underlying model name. Here the predicate checks whether hiking is supported for the activities CVL. The request still contains supplier evidence and a typed question. We need to confirm regional availability, because feature rollout can vary. Microsoft’s current guide excludes East US 2. This Azure example establishes Decisions usage only. It does not mean the managed Agents API examples can use the same Azure endpoint. Keep the two client configurations separate.",
+    "sources": [
+      "https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/decisions"
+    ]
+  },
+  {
+    "title": "Reference: saved work and session cleanup",
+    "kind": "codeFull",
+    "appendix": true,
+    "code": "# Use the session ID returned by slide 6 or slide 7.\nsession_id = \"YOUR_SESSION_ID\"\ns = client.beta.agents.sessions.retrieve(session_id)\nprint(s.status)\n\nitems = client.beta.agents.sessions.items.list(\n    session_id, order=\"asc\", limit=10\n)\nfor item in items:\n    print(item.model_dump())\n\n# Save needed artifacts before deleting the session.\n# client.beta.agents.sessions.delete(session_id)",
+    "footer": "Uses slide 5 setup. Retrieval inspects work; deletion is intentionally commented out.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/agents-api/sessions",
+      "https://developers.openai.com/api/docs/guides/agents-api/sessions/manage"
+    ],
+    "notes": "Here we inspect the work saved in a session. We first retrieve its state, then list items such as messages and tool activity. That helps us check what actually happened, especially after a stream disconnects. Before starting another session as a retry, inspect the existing one so we do not accidentally duplicate the job. The final line shows deletion, but it is commented out deliberately. We should save any required artifacts before cleaning up. A session ID is useful for follow-up and investigation, but our application should also record which user, tenant or job owns it."
+  },
+  {
+    "title": "OpenAI-hosted environment costs",
+    "kind": "hostedCosts",
+    "appendix": true,
+    "values": [
+      [
+        "Size",
+        "Memory",
+        "USD / 20 minutes / container"
+      ],
+      [
+        "small",
+        "1 GB",
+        "$0.03"
+      ],
+      [
+        "medium (default)",
+        "4 GB",
+        "$0.12"
+      ],
+      [
+        "large",
+        "16 GB",
+        "$0.48"
+      ]
+    ],
+    "footer": "Prices checked 3 November 2026. Model usage and separately priced tools are additional.",
+    "notes": "Here is the cost model for an OpenAI-hosted environment. There are separate charges for model tokens, the container, and any priced tools. The published container table lists three cents for small, twelve cents for medium, and forty-eight cents for large per twenty-minute container session. Eligible sessions instead have per-minute billing with a five-minute minimum, so confirm which treatment applies. Our code omits size and therefore uses medium by default. For a lightweight exercise, we can select small explicitly. When finished, save needed files and delete the session to request cleanup. Simply closing the stream does not cancel the task.",
+    "sources": [
+      "https://developers.openai.com/api/docs/pricing#tools",
+      "https://developers.openai.com/api/docs/guides/agents-api/environments/openai-hosted"
+    ],
+    "summary": "Model tokens + container + separately priced tools",
+    "billing": "Eligible sessions: per-minute billing, with a five-minute minimum.\nConfirm which billing treatment applies to your usage.",
+    "lifecycle": "Default: medium (4 GB). Select small explicitly for lightweight tasks.\nSave artifacts and delete finished sessions. Closing the stream does not cancel work."
+  },
+  {
+    "title": "Official references and hands-on practice",
+    "kind": "resources",
+    "appendix": true,
+    "sections": [
+      [
+        "Agents",
+        "Overview, configuration and Python quickstart\nRetrieve-agent and session-management references"
+      ],
+      [
+        "Decisions",
+        "Guide and request reference\nTry predicate, choice and score questions."
+      ],
+      [
+        "Practice",
+        "Run a small task, save the IDs and retrieve it later.\nCompare decisions with human-labeled examples."
+      ]
+    ],
+    "footer": "Official links are in the reference block at the end of each slide’s notes.",
+    "sources": [
+      "https://developers.openai.com/api/docs/guides/agents",
+      "https://developers.openai.com/api/docs/guides/agents-api/configuration",
+      "https://developers.openai.com/api/docs/guides/agents-api/quickstart",
+      "https://developers.openai.com/api/docs/guides/decisions",
+      "https://developers.openai.com/api/reference/resources/decisions/methods/create",
+      "https://developers.openai.com/api/reference/python/resources/beta/subresources/agents/methods/create",
+      "https://developers.openai.com/api/docs/guides/agents-api/sessions",
+      "https://developers.openai.com/api/docs/guides/agents-api/architecture",
+      "https://developers.openai.com/api/docs/guides/agents/quickstart",
+      "https://developers.openai.com/api/docs/guides/agents-api/tools/functions",
+      "https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/decisions",
+      "https://developers.openai.com/api/docs/guides/evaluation-best-practices",
+      "https://developers.openai.com/api/reference/python/resources/beta/subresources/agents/methods/retrieve",
+      "https://developers.openai.com/api/docs/guides/agents-api/sessions/manage",
+      "https://developers.openai.com/api/docs/guides/agents-api/overview"
+    ],
+    "notes": "These are the resources I would use to continue learning. For Agents, begin with the overview and quickstart, then read configuration and retrieval. For Decisions, start with the guide and experiment with the different question types. Try changing one input at a time so you can see how the behavior changes. Our companion notebook contains a PIM-themed lab if that domain is useful, but the API patterns apply more generally. When we move beyond learning, the next step is to evaluate realistic examples and add application error handling, permissions and lifecycle management."
+  }
+]
