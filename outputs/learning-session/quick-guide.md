@@ -71,11 +71,10 @@ TASK = (
 
 Terminal: pip install -U openai python-dotenv. Later snippets reuse this setup.
 
-**Why these models?** `gpt-6-luna` is currently the only model supported by the Decisions endpoint. `gpt-6-astra` follows the Agents API quickstart and provides strong reasoning and coding capabilities. Astra is a demo choice, not a requirement; this arithmetic task does not need a flagship model. For production, evaluate supported agent models for quality, latency and cost.
+**Decisions model:** `gpt-6-luna` is currently the only model supported by the Decisions endpoint.
 
 - [Official reference](https://developers.openai.com/api/docs/guides/agents-api/quickstart)
 - [Decisions model support](https://developers.openai.com/api/docs/guides/decisions)
-- [GPT-6 Astra capabilities](https://developers.openai.com/api/docs/models/gpt-6-astra)
 
 ## Slide 6: Inline agent: start a task and stream events
 

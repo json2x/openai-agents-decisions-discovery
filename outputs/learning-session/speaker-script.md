@@ -28,9 +28,9 @@ There are three approaches to distinguish. With inline configuration, we supply 
 
 ## Slide 5: Shared Python setup
 
-*60 seconds suggested*
+*45 seconds suggested*
 
-Here is the shared setup for the Python examples. The client reads our key from the root environment file. Notice that the two model names have different reasons behind them. We use GPT-6 Luna for Decisions because it is currently the only model supported by that endpoint. It is an API requirement today. For the agent, I chose GPT-6 Astra to match OpenAI's Agents API quickstart and use a model with strong reasoning and coding capabilities. It is a demonstration choice, not an Agents API requirement. Calculating this average does not need a flagship model. For production, evaluate supported models on your own tasks and choose a balance of quality, latency and cost. EVIDENCE supplies the navy jacket description for our CVL questions; TASK supplies the coding exercise. Install the two packages shown below, and give the project key the required permissions. Running these examples incurs usage charges.
+Here is the shared setup for the remaining Python examples. We install the OpenAI client and python-dotenv, then load our key from the root environment file. The client reads the key without us putting it in the code. For Decisions, we use GPT-6 Luna because it is currently the only model supported by that endpoint. EVIDENCE contains the supplier description for our CVL questions: a navy blue jacket suitable for hiking and cycling. TASK contains the small coding exercise for the agent. Use a current SDK and a project key with the required permissions and model access. These examples make live, billable calls when enabled.
 
 ## Slide 6: Inline agent: start a task and stream events
 
